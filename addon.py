@@ -28,8 +28,6 @@ mode = args.get('mode', None)
 username = my_addon.getSetting('username')
 password = my_addon.getSetting('password')
 
-print(username + " " + password)
-
 api_base = 'https://storage.rcs-rds.ro'
 
 s = requests.Session()
@@ -49,7 +47,7 @@ mount = [x for x in mounts if x['name'] == 'Digi Cloud'][0]
 print(mount['name'] + mount['id'])
 
 if mode is None:
-    xbmc_log(u'%s: %s' % ('Digi Storage Player', 'Mode none'))
+##    xbmc_log(u'%s: %s' % ('Digi Storage Player', 'Mode none'))
     files = s.get(api_base + '/api/v2/mounts/' + mount['id'] + '/files/list', params = {'path': '/'}).json()['files']
     for file in files:
         if file['type'] == 'dir':
@@ -73,7 +71,6 @@ if mode is None:
 
     xbmcplugin.endOfDirectory(addon_handle)
 elif mode[0] == 'folder':
-    xbmc_log(u'%s: %s' % ('Digi Storage Player', 'Mode folder'))
     listing = []
     foldername = args['foldername'][0]
     files = s.get(api_base + '/api/v2/mounts/' + mount['id'] + '/files/list', params = {'path': foldername + '/'}).json()['files']
@@ -112,18 +109,14 @@ elif mode[0] == 'folder':
     xbmcplugin.endOfDirectory(addon_handle)
 elif mode[0] == 'picture':
     if 'https://' in args['foldername'][0]:
-        xbmc_log(u'%s: %s' % ('Digi Storage Player', 'Mode video ###########################################################################'))
 ##        play_item = xbmcgui.ListItem(path=args['foldername'][0])
 ##        xbmcplugin.setResolvedUrl(addon_handle, True, listitem=play_item)
         xbmc.executebuiltin('PlayMedia('+args['foldername'][0]+')')
     else:
-        xbmc_log(u'%s: %s' % ('Digi Storage Player', 'Mode picture'))
         url = s.get(api_base + '/api/v2/mounts/' + mount['id'] + '/files/download', params = {'path': args['foldername'][0]}, verify=False).json()['link']
         xbmc.executebuiltin('ShowPicture('+url+')')
 else:
     if mode[0] == 'play':
-        xbmc_log(u'%s: %s' % ('Digi Storage Player', 'Mode video ###########################################################################'))
-        xbmc_log(u'%s: %s' % ('Digi Storage Player', 'Url = '+args['foldername'][0]))
         play_item = xbmcgui.ListItem(path=args['foldername'][0])
         xbmcplugin.setResolvedUrl(addon_handle, True, listitem=play_item)
 
