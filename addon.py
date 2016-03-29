@@ -44,8 +44,6 @@ mounts = s.get(api_base + '/api/v2/mounts').json()['mounts']
 
 mount = [x for x in mounts if x['name'] == 'Digi Cloud'][0]
 
-print(mount['name'] + mount['id'])
-
 if mode is None:
 ##    xbmc_log(u'%s: %s' % ('Digi Storage Player', 'Mode none'))
     files = s.get(api_base + '/api/v2/mounts/' + mount['id'] + '/files/list', params = {'path': '/'}).json()['files']
@@ -56,10 +54,6 @@ if mode is None:
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
                                 listitem=li, isFolder=True)
         elif '.mp3' in file['name'] or '.mkv' in file['name']:
-##            url = s.get(api_base + '/api/v2/mounts/' + mount['id'] + '/files/download', params = {'path': '/'+file['name']}, verify=False).json()['link']
-##            li = xbmcgui.ListItem(file['name'], iconImage='media.png')
-##            li.setProperty('IsPlayable', 'true')
-##            xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li)
             url = build_url({'mode': 'video', 'foldername': '/' + file['name']})
             li = xbmcgui.ListItem(file['name'], iconImage='DefaultFolder.png')
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
@@ -88,24 +82,12 @@ elif mode[0] == 'folder':
             li.addContextMenuItems([ ('Play', 'PlayMedia('+tempoUrl+')')])
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
                                 listitem=li, isFolder=False)
-            
-##            tempoUrl = s.get(api_base + '/api/v2/mounts/' + mount['id'] + '/files/download', params = {'path': foldername + '/' + file['name']}, verify=False).json()['link']
-##            list_item = xbmcgui.ListItem(label=file['name'], thumbnailImage='thumbnail.jpg')
-##            list_item.setProperty('fanart_image', 'thumbnail.jpg')
-##            list_item.setInfo('video', {'title': file['name'], 'genre': 'Video'})
-##            list_item.setProperty('IsPlayable', 'true')
-##            url = build_url({'mode': 'video', 'url': tempoUrl})
-##            is_folder = False
-##            listing.append((url, list_item, is_folder))
 
         elif '.jpg' in file['name'] or '.png' in file['name'] or '.jpeg' in file['name']:
             url = build_url({'mode': 'picture', 'foldername': foldername + '/' + file['name']})
             li = xbmcgui.ListItem(file['name'], iconImage='DefaultFolder.png')
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
                                 listitem=li, isFolder=False)
-##    xbmcplugin.addDirectoryItems(addon_handle, listing, len(listing))
-##    # Add a sort method for the virtual folder items (alphabetically, ignore articles)
-##    xbmcplugin.addSortMethod(addon_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     xbmcplugin.endOfDirectory(addon_handle)
 elif mode[0] == 'picture':
     if 'https://' in args['foldername'][0]:
