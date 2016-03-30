@@ -14,5 +14,6 @@
 		<license>GNU General Public License, v2</license>
 		<language></language>
 		<email>marianp.dot.com@gmail.com</email>
+		<source>https://github.com/marianpavel/plugin.video.digistorageplayer</source>
 	</extension>
 </addon>
