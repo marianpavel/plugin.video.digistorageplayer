@@ -5,10 +5,13 @@ import xbmcgui
 import xbmcplugin
 import xbmcaddon
 import requests
+import tmdbsimple as tmdb
 from xbmc import log as xbmc_log
 from urlparse import parse_qsl
 
 requests.packages.urllib3.disable_warnings()
+
+tmdb.API_KEY = 'dc12e1868d1ba1a4765f06eda04f99a6'
 
 base_url = sys.argv[0]
 addon_handle = int(sys.argv[1])
@@ -50,16 +53,24 @@ if mode is None:
     for file in files:
         if file['type'] == 'dir':
             url = build_url({'mode': 'folder', 'foldername': '/' + file['name'], 'action': 'folder'})
-            li = xbmcgui.ListItem('/' + file['name'], iconImage='DefaultFolder.png')
+            li = xbmcgui.ListItem('/' + file['name'].encode('utf-8'), iconImage='DefaultFolder.png')
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
                                 listitem=li, isFolder=True)
         elif '.mp3' in file['name'] or '.mkv' in file['name']:
-            url = build_url({'mode': 'video', 'foldername': '/' + file['name']})
-            li = xbmcgui.ListItem(file['name'], iconImage='DefaultFolder.png')
+            url = build_url({'mode': 'video', 'foldername': '/' + file['name'].encode('utf-8')})
+            search = tmdb.Search()
+            response = search.movie(query=file['name'].replace(".mkv", "").replace(".mp3", ""))
+            
+            if len(search.results) > 0:
+                li = xbmcgui.ListItem(file['name'].encode('utf-8'), iconImage='http://image.tmdb.org/t/p/w500'+search.results[0]['poster_path'])
+                li.setInfo('video', {'plot': search.results[0]['overview'].encode('utf-8'), 'plotoutline': search.results[0]['overview'].encode('utf-8')})
+            else:
+                li = xbmcgui.ListItem(file['name'].encode('utf-8'), iconImage='DefaultFolder.png')
+            
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
                                 listitem=li, isFolder=False)
         elif '.jpg' in file['name'] or '.png' in file['name'] or '.jpeg' in file['name']:
-            url = build_url({'mode': 'picture', 'foldername': '/' + file['name']})
+            url = build_url({'mode': 'picture', 'foldername': '/' + file['name'].encode('utf-8')})
             li = xbmcgui.ListItem(file['name'], iconImage='DefaultFolder.png')
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li)
 
@@ -77,12 +88,19 @@ elif mode[0] == 'folder':
                                 listitem=li, isFolder=True)
         elif '.mp3' in file['name'] or '.mkv' in file['name']:
             tempoUrl = s.get(api_base + '/api/v2/mounts/' + mount['id'] + '/files/download', params = {'path': foldername + '/' + file['name']}, verify=False).json()['link']
-            url = build_url({'mode': 'picture', 'foldername': tempoUrl})
-            li = xbmcgui.ListItem(file['name'], iconImage='DefaultFolder.png')
+            url = build_url({'mode': 'video', 'foldername': tempoUrl})
+            search = tmdb.Search()
+            response = search.movie(query=file['name'].replace(".mkv", "").replace(".mp3", ""))
+            
+            if len(search.results) > 0:
+                li = xbmcgui.ListItem(file['name'], iconImage='http://image.tmdb.org/t/p/w500'+search.results[0]['poster_path'])
+                li.setInfo('video', {'plot': search.results[0]['overview'].encode('utf-8'), 'plotoutline': search.results[0]['overview'].encode('utf-8')})
+            else:
+                li = xbmcgui.ListItem(file['name'], iconImage='DefaultFolder.png')
+
             li.addContextMenuItems([ ('Play', 'PlayMedia('+tempoUrl+')')])
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
                                 listitem=li, isFolder=False)
-
         elif '.jpg' in file['name'] or '.png' in file['name'] or '.jpeg' in file['name']:
             url = build_url({'mode': 'picture', 'foldername': foldername + '/' + file['name']})
             li = xbmcgui.ListItem(file['name'], iconImage='DefaultFolder.png')
